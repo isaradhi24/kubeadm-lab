@@ -4,9 +4,9 @@ kind: Service
 apiVersion: v1
 metadata:
   name: nginx-svc
-  namespace: nginx 
+  namespace: nginx-ns
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: nginx
   ports:
