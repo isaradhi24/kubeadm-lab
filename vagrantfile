@@ -108,7 +108,7 @@ Vagrant.configure("2") do |config|
         fi
       SHELL
 
-      # (Jenkins/Sonar blocks remain unchanged)
+      # (Jenkins-ci block)
       if name == "jenkins-ci"
         node.vm.synced_folder "./jenkins_home", "/var/jenkins_home"
         node.vm.synced_folder "./docker_home", "/var/docker_home"
@@ -117,13 +117,26 @@ Vagrant.configure("2") do |config|
         node.vm.provision "shell", path: "scripts/install_jenkins.sh"
         node.vm.provision "shell", path: "scripts/plugins_jenkins.sh"
         node.vm.provision "shell", path: "scripts/config_jenkins.sh"
+        
+        # Add the PAT reading logic here
+        pat_file = "./secrets/git-persona-access-token"
+        github_token = File.exist?(pat_file) ? File.read(pat_file).strip : "TOKEN_NOT_FOUND"
+
         node.vm.provision "shell", inline: <<-SHELL
+          # 1. Set the JCasC Path (Your existing logic)
+          sudo sed -i '/jenkins.casc.configuration/d' /etc/environment
           echo "jenkins.casc.configuration='/var/jenkins_home/casc_configs/jenkins.yaml'" | sudo tee -a /etc/environment
-          # Restart jenkins to pick up the new environment variable if already running
+          
+          # 2. Set the GitHub PAT (New logic)
+          sudo sed -i '/GITHUB_PAT/d' /etc/environment
+          echo "GITHUB_PAT=#{github_token}" | sudo tee -a /etc/environment
+          
+          # 3. Restart Jenkins once to pick up BOTH variables
           sudo systemctl restart jenkins
         SHELL
       end
-
+      
+      # (Sonar block remain unchanged)
       if name == "sonarqube"
         node.vm.synced_folder "./sonarqube_home", "/var/sonarqube_home"
         node.vm.provision "shell", path: "scripts/install_sonarqube.sh"
