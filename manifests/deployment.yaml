@@ -1,0 +1,107 @@
+# Deployment manifest for nginx - created by kubeadm-lab
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace : nginx-ns
+
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      name: nginx-dep-pod
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+
+# apply the deployment in the nginx namespace (if the namespace is not set in the current context)
+# rcommended to include namespace in the manifest to avoid confusion and ensure it is applied to the correct namespace
+#   kubectl apply -f deployment.yaml -n nginx       
+#
+# if namespace is already set in the current context, you can simply run:
+# kubectl apply -f deployment.yaml
+#  ----> deployment.apps/nginx-deployment created
+
+# Check
+# kubectl get deployments -n nginx 
+# kubectl describe deployment nginx-deployment -n nginx-ns
+# Verify
+# kubectl get pods -n nginx-ns  ---> should show 3 pods running
+#         $ kubectl get pods -n nginx-ns
+#         NAME                                READY   STATUS    RESTARTS   AGE
+#         nginx-deployment-6dbd7f7b8c-7qvtl   1/1     Running   0          3m20s
+#         nginx-deployment-6dbd7f7b8c-gmp8b   1/1     Running   0          3m20s
+#         nginx-deployment-6dbd7f7b8c-mp27r   1/1     Running   0          3m20s
+
+# kubectl get events -n nginx-ns  ---> check for any events related to the deployment and pods
+  # $ kubectl get events -n nginx-ns
+  # LAST SEEN   TYPE     REASON              OBJECT                                   MESSAGE
+  # 5m50s       Normal   Pulling             pod/nginx-deployment-6dbd7f7b8c-7qvtl    Pulling image "nginx:latest"
+  # 5m50s       Normal   Pulled              pod/nginx-deployment-6dbd7f7b8c-7qvtl    Successfully pulled image "nginx:latest" in 411ms (411ms including waiting)
+  # 5m50s       Normal   Created             pod/nginx-deployment-6dbd7f7b8c-7qvtl    Created container: nginx
+  # 5m50s       Normal   Scheduled           pod/nginx-deployment-6dbd7f7b8c-7qvtl    Successfully assigned nginx-ns/nginx-deployment-6dbd7f7b8c-7qvtl to k8s-worker2
+  # 5m50s       Normal   Started             pod/nginx-deployment-6dbd7f7b8c-7qvtl    Started container nginx
+  # 5m50s       Normal   Scheduled           pod/nginx-deployment-6dbd7f7b8c-gmp8b    Successfully assigned nginx-ns/nginx-deployment-6dbd7f7b8c-gmp8b to k8s-worker1
+  # 5m49s       Normal   Pulling             pod/nginx-deployment-6dbd7f7b8c-gmp8b    Pulling image "nginx:latest"
+  # 5m48s       Normal   Pulled              pod/nginx-deployment-6dbd7f7b8c-gmp8b    Successfully pulled image "nginx:latest" in 488ms (748ms including waiting)
+  # 5m48s       Normal   Created             pod/nginx-deployment-6dbd7f7b8c-gmp8b    Created container: nginx
+  # 5m48s       Normal   Started             pod/nginx-deployment-6dbd7f7b8c-gmp8b    Started container nginx
+  # 5m50s       Normal   Scheduled           pod/nginx-deployment-6dbd7f7b8c-mp27r    Successfully assigned nginx-ns/nginx-deployment-6dbd7f7b8c-mp27r to k8s-worker1
+  # 5m49s       Normal   Pulling             pod/nginx-deployment-6dbd7f7b8c-mp27r    Pulling image "nginx:latest"
+  # 5m49s       Normal   Pulled              pod/nginx-deployment-6dbd7f7b8c-mp27r    Successfully pulled image "nginx:latest" in 433ms (433ms including waiting)
+  # 5m49s       Normal   Created             pod/nginx-deployment-6dbd7f7b8c-mp27r    Created container: nginx
+  # 5m48s       Normal   Started             pod/nginx-deployment-6dbd7f7b8c-mp27r    Started container nginx
+  # 5m50s       Normal   SuccessfulCreate    replicaset/nginx-deployment-6dbd7f7b8c   Created pod: nginx-deployment-6dbd7f7b8c-7qvtl
+  # 5m50s       Normal   SuccessfulCreate    replicaset/nginx-deployment-6dbd7f7b8c   Created pod: nginx-deployment-6dbd7f7b8c-mp27r
+  # 5m50s       Normal   SuccessfulCreate    replicaset/nginx-deployment-6dbd7f7b8c   Created pod: nginx-deployment-6dbd7f7b8c-gmp8b
+  # 5m50s       Normal   ScalingReplicaSet   deployment/nginx-deployment              Scaled up replica set nginx-deployment-6dbd7f7b8c to 3
+
+# scale up pods
+# kubectl scale deployment nginx-deployment --replicas=5 -n nginx-ns  ---> scale up to 5 replicas
+#      deployment.apps/nginx-deployment scaled
+# kubectl get pods -n nginx-ns  ---> should show 5 pods running
+      # NAME                                READY   STATUS    RESTARTS   AGE
+      # nginx-deployment-6dbd7f7b8c-7qvtl   1/1     Running   0          9m52s
+      # nginx-deployment-6dbd7f7b8c-gmp8b   1/1     Running   0          9m52s
+      # nginx-deployment-6dbd7f7b8c-m5b6q   1/1     Running   0          45s
+      # nginx-deployment-6dbd7f7b8c-mp27r   1/1     Running   0          9m52s
+      # nginx-deployment-6dbd7f7b8c-r8v9p   1/1     Running   0          45s
+
+# Rolling update
+# kubectl set image deployment/nginx-deployment nginx=nginx:1.21 -n nginx-ns  ---> update nginx image to version 1.21
+# kubectl rollout status deployment/nginx-deployment -n nginx-ns  ---> check rollout status
+# kubectl get pods -n nginx-ns  ---> should show pods with new image version 
+     
+# Recommended Practical Order (Real DevOps Workflow)
+#----------------------------------------------------# 
+# In real-world scenarios, the order of applying Kubernetes manifests matters for a smooth deployment process. 
+# While you can technically apply resources in any order, 
+# following a logical sequence helps avoid issues and ensures that dependencies are met.b 
+#  
+# Here’s the clean, industry-standard sequence:
+# - Namespace (optional but recommended)
+# - ConfigMaps / Secrets (if needed)
+# - Deployments (or StatefulSets, DaemonSets)
+# - Services (ClusterIP, NodePort, LoadBalancer)
+# - Ingress (if using)
+# - NetworkPolicies, RBAC, etc.
+# This order ensures:
+# - resources have a place to live
+# - workloads start correctly
+# - networking binds cleanly
+# - automation pipelines remain deterministic
+
+
+
+
+# kubectl describe pod nginx-pod
+# kubectl logs nginx-pod
+# kubectl exec -it nginx-pod -- sh

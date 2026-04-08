@@ -1,0 +1,100 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nginx-1mt-backup-cronjob
+  namespace: nginx-ns
+
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: cronjob-nginx
+        spec:
+          restartPolicy: OnFailure
+
+          containers:
+          - name: cronjob-nginx-container
+            image: busybox:latest
+            command:
+              - sh
+              - -c
+              - |
+                echo "Hello Kubernetes! This is a cron job running nginx backup"
+                mkdir -p /backups
+                mkdir -p /demo-data
+                tar -czf /backups/backup-$(date +%Y%m%d%H%M%S).tar.gz /demo-data
+                echo "Backup completed at $(date)" >> /backups/backup.log
+                sleep 10
+
+            volumeMounts:
+            - name: nginx-backup-volume
+              mountPath: /backups
+            - name: nginx-data-volume
+              mountPath: /demo-data
+
+          volumes:
+          - name: nginx-backup-volume
+            hostPath:
+              path: /mnt/backup
+              type: DirectoryOrCreate
+
+          - name: nginx-data-volume
+            hostPath:
+              path: /mnt/demo-data
+              type: DirectoryOrCreate
+
+
+# kubectl apply -f cron-job.yaml -n nginx-ns  ---> create the cron job in the nginx namespace
+
+
+# kubectl get cronjobs -n nginx-ns  ---> should show the cron job created 
+
+  # NAME                       SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+  # nginx-1mt-backup-cronjob   */1 * * * *   False     0        41s             4m30s
+
+# kubectl describe cronjob nginx-1mt-backup-cronjob -n nginx-ns  ---> check the details of the cron job
+    # ....
+    # ....
+    # Last Schedule Time:  Fri, 20 Mar 2026 19:17:00 +0000
+    # Active Jobs:         <none>
+    # Events:
+    #   Type    Reason            Age              From                Message
+    #   ----    ------            ----             ----                -------
+    #   Normal  SuccessfulCreate  4m22s            cronjob-controller  Created job nginx-1mt-backup-cronjob-29567233
+    #   Normal  SawCompletedJob   4m3s             cronjob-controller  Saw completed job: nginx-1mt-backup-cronjob-29567233, status: Complete
+    #   Normal  SuccessfulCreate  3m22s            cronjob-controller  Created job nginx-1mt-backup-cronjob-29567234
+    #   Normal  SawCompletedJob   2m50s            cronjob-controller  Saw completed job: nginx-1mt-backup-cronjob-29567234, status: Complete
+    #   Normal  SuccessfulCreate  2m22s            cronjob-controller  Created job nginx-1mt-backup-cronjob-29567235
+    #   Normal  SawCompletedJob   2m8s             cronjob-controller  Saw completed job: nginx-1mt-backup-cronjob-29567235, status: Complete
+    #   Normal  SuccessfulCreate  82s              cronjob-controller  Created job nginx-1mt-backup-cronjob-29567236
+    #   Normal  SuccessfulDelete  67s              cronjob-controller  Deleted job nginx-1mt-backup-cronjob-29567233
+    #   Normal  SawCompletedJob   67s              cronjob-controller  Saw completed job: nginx-1mt-backup-cronjob-29567236, status: Complete
+    #   Normal  SuccessfulCreate  22s              cronjob-controller  Created job nginx-1mt-backup-cronjob-29567237
+    #   Normal  SuccessfulDelete  7s               cronjob-controller  Deleted job nginx-1mt-backup-cronjob-29567234
+    #   Normal  SawCompletedJob   7s (x2 over 7s)  cronjob-controller  Saw completed job: nginx-1mt-backup-cronjob-29567237, status: Complete
+
+# kubectl get jobs -n nginx-ns  ---> should show the jobs created by the cron job
+        # NAME                                COMPLETIONS   DURATION   AGE
+        # nginx-1mt-backup-cronjob-29567236   1/1           15s        2m32s
+        # nginx-1mt-backup-cronjob-29567237   1/1           14s        92s
+        # nginx-1mt-backup-cronjob-29567238   1/1           16s        32s
+
+# kubectl get pods -n nginx-ns  ---> should show the pods created by the jobs
+     
+      # NAME                                      READY   STATUS      RESTARTS   AGE
+      # nginx-1mt-backup-cronjob-29567237-48lv5   0/1     Completed   0          2m53s
+      # nginx-1mt-backup-cronjob-29567238-srxls   0/1     Completed   0          113s
+      # nginx-1mt-backup-cronjob-29567239-qbckw   0/1     Completed   0          53s
+
+# kubectl logs <pod-name> -n nginx-ns  ---> check the logs of the cron job pods to verify the backup process
+
+      # kubectl logs nginx-1mt-backup-cronjob-29567237-48lv5 -n nginx-ns
+      # Hello Kubernetes! This is a cron job running nginx backup
+      # vagrant@k8s-master:/vagrant/manifests$ kubectl logs nginx-1mt-backup-cronjob-29567238-srxls -n nginx-ns
+      # Hello Kubernetes! This is a cron job running nginx backup
+      # vagrant@k8s-master:/vagrant/manifests$ kubectl logs nginx-1mt-backup-cronjob-29567239-qbckw -n nginx-ns
+      # Hello Kubernetes! This is a cron job running nginx backup
+

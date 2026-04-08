@@ -1,0 +1,12 @@
+kube_join.sh
+*.token
+passwords.txt
+working_notes.txt
+*.txt
+*.log
+
+# Ignore installers folder
+installers/
+# Ignore jenkins-plugin-manager.jar
+jenkins_home/jenkins-plugin-manager.jar
+secrets/

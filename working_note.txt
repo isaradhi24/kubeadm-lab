@@ -1,0 +1,8 @@
+sonarqune
+postgresql
+
+---- to start the lab----
+vagrant up k8s-master k8s-worker1
+vagrant up jenkins-ci sonarqube
+
+

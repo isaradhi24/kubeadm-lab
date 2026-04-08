@@ -1,0 +1,22 @@
+# create a service to expose the nginx pod
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx-svc
+  namespace: nginx 
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80 
+
+# Apply
+# kubectl apply -f service.yaml
+
+# Verify
+#kubectl get svc
+# kubectl describe svc nginx-svc

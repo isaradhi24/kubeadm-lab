@@ -1,0 +1,109 @@
+security:
+  globalJobDslSecurityConfiguration:
+    useScriptSecurity: false
+jenkins:
+  systemMessage: "K8s Lab Jenkins - Managed by JCasC"
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+       - id: "vijay"
+         password: "42557"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  crumbIssuer:
+    standard:
+      excludeClientIPFromCrumb: true
+  
+  numExecutors: 2
+  mode: NORMAL
+
+# Automatically install Maven so the Jenkinsfile 'tools' block works
+tool:
+  maven:
+    installations:
+      - name: "Maven-3.9"
+        properties:
+          - installSource:
+              installers:
+                - maven:
+                    id: "3.9.6"
+
+# Create Credentials automatically
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - basicSSHUserPrivateKey: # Changed from usernamePassword
+              scope: GLOBAL
+              id: "k8s-master-ssh"
+              username: "vagrant"
+              description: "SSH Key for K8s Master"
+              privateKeySource:
+                directEntry:
+                  privateKey: |
+                    -----BEGIN OPENSSH PRIVATE KEY-----
+                    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
+                    NhAAAAAwEAAQAAAYEA4V5eRoOuf5WQw08HmwKDpPs4FndnrXzMla1T99IqBFVOM3YohExZ
+                    fOYzPRbPOJx8ii1LGyhyfvlYfyrdFtDPDHN0XROkD72DrchGHx3v/760dbS5IL7wU0x5RA
+                    7fQypH/B/Ezh4Ultmuto3IVmwmFwOGBknB4fzfdL4/SY7ABQzBfcvX9My9zyI/nCiCakd2
+                    cHxvdt2hJl2YKDlaIzH27mbuJAKJ5vSKtzI1cMZrvNb+MpoVdK1sOi0pBKt3RIXpuv5gsv
+                    dVvVcqvRHpb/7xrlfGgI/wkI+dxKv/VXyJiy7cXqMEQ+lUfuGBJZcoV4kZo5yqrydpL0Pf
+                    dfACWBwOnBZ5wrvzHRS/mVEUOKwNrnRd5gMynV07el5Jo/oSw/2oj71FkKjmSqcWjiSi96
+                    g09S2KmbHC6NpIwuT8TLI74dOFqBQjvlQDxWrJZg4rSWhDp5ubuxv2r5gzMSt+VrlRJJqF
+                    ISIp/3Nfu8HPSoqM7ga6MmVBSGg9NNwu9g8AduiVAAAFkEOFCgRDhQoEAAAAB3NzaC1yc2
+                    EAAAGBAOFeXkaDrn+VkMNPB5sCg6T7OBZ3Z618zJWtU/fSKgRVTjN2KIRMWXzmMz0Wzzic
+                    fIotSxsocn75WH8q3RbQzwxzdF0TpA+9g63IRh8d7/++tHW0uSC+8FNMeUQO30MqR/wfxM
+                    4eFJbZrraNyFZsJhcDhgZJweH833S+P0mOwAUMwX3L1/TMvc8iP5wogmpHdnB8b3bdoSZd
+                    mCg5WiMx9u5m7iQCieb0ircyNXDGa7zW/jKaFXStbDotKQSrd0SF6br+YLL3Vb1XKr0R6W
+                    /+8a5XxoCP8JCPncSr/1V8iYsu3F6jBEPpVH7hgSWXKFeJGaOcqq8naS9D33XwAlgcDpwW
+                    ecK78x0Uv5lRFDisDa50XeYDMp1dO3peSaP6EsP9qI+9RZCo5kqnFo4koveoNPUtipmxwu
+                    jaSMLk/EyyO+HThagUI75UA8VqyWYOK0loQ6ebm7sb9q+YMzErfla5USSahSEiKf9zX7vB
+                    z0qKjO4GujJlQUhoPTTcLvYPAHbolQAAAAMBAAEAAAGAIIDnv+vGAwijNEf1pNmb+vNwh2
+                    z5OwBA0WWKMrfQ74cOHEXyWgJY9baNtUXQ5S1MmPEnX+dZfA6iQNUBxgSfmAAezD3E77A5
+                    iZrU4jADKTNr+33xJVPkfV8OLk6mzJ0QfMBoNgIInikPFa0lM7GtXKxZbBa/K8S4xbGalx
+                    VLhG7uiSIZJ2lQBsu9uNvu0z0zS83mlZIpZ8sf4s1Cvsi6AHA/8FmdYf3q87j+FCHJ8BZh
+                    2xJ1/bn1Xf6dZ9sC/JMDeWpBjCgeqv3VpSqdAdCZAc/VNfYtF2k04lee7UmbD7CtocPpvP
+                    zU50ZbYQiHTzeBYOXrsf5RW2U1/Brz9YBNl0jM1t5o0ByxcDluYwSLsIcKZtPIbIXUBawh
+                    9wfx5ablqXz+W9JjlxDe1MvG00/V/d/Q0igu6CScrnQfpzj0lOqkP0X9aJ+kS1BVPMaCVk
+                    hW1TMENRdHGwNzWxct7LDfQx1wKSgiVGTzjjIVyqLRMjuVhbq1QiApCUtlRvH1PtiRAAAA
+                    wFV3aeqlRuZEMw4Ct5wyQar74aJeRj7sYrdlEXMNsCjT1es9mgycS2FyC9TTh2AuG3S+aV
+                    nm8SSyJ5UohBIKWnXVrodPB1wb2kAZJBrmei0qJJsuaI0dJW47eSsPWmcmFSo/SOHXl/ug
+                    U8K+tL02xcc3fUgTUHd4sU+actT4WQWYeVXg/FRQBuQcN24mYBJAP6EA4S8m9FwYEJsDvU
+                    Wj+E6LoYvZbsBRWus/+bzbooHVaWpRLTtlX9kjuo2tgxYYKQAAAMEA+bjC9e11O66vWm9V
+                    WxHEJD3PcMy9GXe4W8/if/yENmAYaf1m57SVEI6lkKPLKhHJkaierNrsOOig+YSYGztCub
+                    m1MS3/cPaBjOCl8iPIMT/eAp5gL2paDC1lFjj4LaJ8JvzHgTlMmp/mITI8knM6NXTOCxn0
+                    Ri6rd4XqA72ZIzLgWojVThqQytBCwCSPyMm5s9p/1aDuWhhFNsfSNgCFQKYgMz00/7fJEL
+                    2bDzPTRdYECR0FNM/wP6p4OrvLdlOrAAAAwQDnCN4GciD9sLLFwZy8smIEf9QFKX8mUfTp
+                    +9IqUDwdWKR4xqu+nVmXZ0Lzo7ojNMcfFL+iQf8+w6S4aa4LXG7xP4N3kvGnazpXHShHGl
+                    gzyX3jOfDdJlNqEesTm2CjVcZ0KeiIiUrHapdM6rfjrB1e0cw2YS00ZX+G71GuBHVNANE8
+                    XclUdjOFlTPZRWSN30tKsuD1T80C/HPsBSzV5MhQ0HIvNqgsftAcE18dGKcaWy+t/ROJNd
+                    hZEa9NKsrPdL8AAAAVaXNhcmFAREVTS1RPUC1WVEpQOTYxAQIDBAUG
+                    -----END OPENSSH PRIVATE KEY-----
+
+          - usernamePassword:
+              scope: GLOBAL
+              id: "GitHub_ID"
+              username: "isaradhi24"
+              password: "${GITHUB_PAT}" # Use your Personal Access Token
+
+# Create the Job automatically
+jobs:
+  - script: >
+      pipelineJob('K8s-Bootstrap-and-Deploy') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/isaradhi24/kubeadm-lab.git')
+                  credentials('GitHub_ID')
+                }
+                branches('*/main')
+              }
+            }
+            scriptPath('Jenkinsfile')
+          }
+        }
+      }

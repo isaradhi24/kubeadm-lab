@@ -1,0 +1,28 @@
+# # Simple Pod manifest: pod.yaml
+
+kind: Pod
+apiVersion: v1 
+metadata: 
+  name: nginx-pod
+  namespace: nginx
+
+spec:
+  containers:
+  - name: nginx
+    image: nginx:latest
+    ports:
+    - containerPort: 80
+
+
+# Apply
+# kubectl apply -f pod.yaml
+
+# Verify
+# kubectl get pods
+# kubectl describe pod nginx-pod  ----> to see the details of the pod for troubleshooting
+# kubectl logs nginx-pod
+# kubectl exec -it pod/nginx-pod -n nginx -- /bin/bash
+# run `ls` to see the files in the container
+# run curl localhost to see the nginx welcome page
+# run curl localhost:80 to see the nginx welcome page
+# kubectl delete -f pod.yaml

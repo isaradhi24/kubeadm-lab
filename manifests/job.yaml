@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nginx-job
+  namespace: nginx-ns
+
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      name: nginx-job-pod
+      labels:
+        app: batch-task-nginx
+    spec:
+      containers:
+      - name: batch-task-nginx-container
+        image: busybox:latest
+        command: ["sh", "-c", "echo Hello Kubernetes! This is a batch job running nginx. && sleep 10"]
+      restartPolicy: Never

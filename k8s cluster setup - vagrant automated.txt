@@ -1,0 +1,74 @@
+Core Concepts:
+Workloads ----->
+    deployments
+    SatefulSets
+    DaemonSets
+    ReplicaSets
+    Jobs  ---> 
+    CronJobs
+
+networking
+    Cluster networking
+    services
+    Ingress
+    Network Policies
+
+Storage ---------->
+    Persistent Volumes (PV)
+    Persistent Volume Claims (PVC)
+    StorageClasses,
+    ConfigMaps
+    Secretes
+
+Scaling and Scheduling ----->
+    HPA
+    VPA
+    Node Affinity
+    Taints/Tolerators
+    Resources Quotas
+    Limits
+    Probes
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
+
+How to use this vagrant based kubenets cluster
+run `vagrant up` at command line local sytem
+
+Fully automated cluster: Master + 2 workers configured automatically.
+
+Containerd + kubeadm/kubelet/kubectl installed on all nodes.
+
+Calico network plugin installed automatically on master.
+
+Automatic worker join via a shared /vagrant/kube_join.sh file.
+
+Jenkins and SonarQube VMs created for manual setup later.
+
+Headless: Run a single command vagrant up to get everything running.
+
+With this setup:
+
+Cluster is fully automated — single vagrant up brings up master + workers and network.
+
+Synced manifests folder — you can create, edit, and version your YAMLs on your host (D:/Dveops/kubeadm-lab/manifests) and apply them on the master VM without losing them when you rebuild.
+
+Vagrant user sudo-enabled — no more permission headaches running kubectl or applying manifests.
+
+Workers auto-join — everything is ready for deployments, ReplicaSets, services, and more, right away.
+
+Next steps for you:
+
+Start creating namespaces, pods, deployments, ReplicaSets in your synced manifests folder.
+
+Run kubectl apply -f /home/vagrant/manifests on the master to test.
+
+Experiment with updates and rollbacks — the cluster is now persistent and easy to reset.
+
+Later, integrate CI/CD pipelines with Jenkins and SonarQube (your VMs are ready for that).
