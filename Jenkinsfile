@@ -38,12 +38,7 @@ EOF
             }
         }
 
-        stage('Build & Test') {
-            steps {
-                sh 'mvn clean package -DskipTests' 
-            }
-        }
-
+        
         /* COMMENTING OUT UNTIL SONARQUBE IS UP
         stage('SonarQube Analysis') {
             steps {
