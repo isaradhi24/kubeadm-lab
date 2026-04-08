@@ -26,31 +26,34 @@ echo "Installing Java 17..."
 apt-get install -y openjdk-17-jre
 java -version
 
-# 3. Setup Jenkins Keyring (Headless Fix)
-echo "Cleaning old Jenkins keys and lists..."
-sudo rm -f /etc/apt/keyrings/jenkins-keyring.gpg
+# 3. Complete Purge of old Jenkins metadata
+echo "Purging old Jenkins metadata..."
 sudo rm -f /etc/apt/sources.list.d/jenkins.list
+sudo rm -f /etc/apt/keyrings/jenkins-keyring.gpg
+sudo rm -f /etc/apt/trusted.gpg.d/jenkins* # Sometimes keys hide here!
+sudo apt-key del 5BA31D57A47D22D1 2>/dev/null # Deletes the old key from the legacy store
 
-echo "Adding Jenkins Repository..."
+# 4. Clean the APT cache for this specific repo
+sudo rm -rf /var/lib/apt/lists/pkg.jenkins.io*
+# 5. Re-add the fresh Key
+echo "Adding new Jenkins Repository..."
 sudo mkdir -p /etc/apt/keyrings
-# Using gpg --dearmor to convert the key to the format Ubuntu 22.04+ expects
 curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo gpg --dearmor --yes -o /etc/apt/keyrings/jenkins-keyring.gpg
 
-# 4. Add Jenkins Repository
-# We ensure the [signed-by] path matches the -o path above exactly
+# 6. Re-add the Source
 echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.gpg] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-# 5. Update and Install
+# 7. Update and Install
 sudo apt-get update -y
 sudo apt-get install -y jenkins
 
-# 6. Start and Enable Jenkins
+# 8. Start and Enable Jenkins
 echo "Starting Jenkins Service..."
 systemctl daemon-reload
 systemctl enable jenkins
 systemctl start jenkins
 
-# 7. Configure Docker Permissions
+# 9. Configure Docker Permissions
 # Crucial: This allows Jenkins to run Docker commands for your Pipeline
 echo "Configuring Docker group for Jenkins user..."
 if getent group docker; then
@@ -60,13 +63,13 @@ else
     echo "Warning: Docker group not found. Ensure install_docker.sh ran first."
 fi
 
-# 8. Firewall (UFW)
+# 11. Firewall (UFW)
 if command -v ufw >/dev/null 2>&1; then
     sudo ufw allow 8080/tcp
     sudo ufw reload
 fi
 
-# 9. Output Access Info
+# 12. Output Access Info
 # We use eth1 because Vagrant usually assigns the private static IP there
 IP_ADDR=$(ip -4 addr show eth1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' || hostname -I | awk '{print $2}')
 
