@@ -27,17 +27,22 @@ apt-get install -y openjdk-17-jre
 java -version
 
 # 3. Setup Jenkins Keyring (Headless Fix)
-# The --yes flag prevents the "overwrite?" prompt that causes TTY errors
+echo "Cleaning old Jenkins keys and lists..."
+sudo rm -f /etc/apt/keyrings/jenkins-keyring.gpg
+sudo rm -f /etc/apt/sources.list.d/jenkins.list
+
 echo "Adding Jenkins Repository..."
-mkdir -p /etc/apt/keyrings
+sudo mkdir -p /etc/apt/keyrings
+# Using gpg --dearmor to convert the key to the format Ubuntu 22.04+ expects
 curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo gpg --dearmor --yes -o /etc/apt/keyrings/jenkins-keyring.gpg
 
 # 4. Add Jenkins Repository
+# We ensure the [signed-by] path matches the -o path above exactly
 echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.gpg] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-# 5. Install Jenkins
-apt-get update -y
-apt-get install -y jenkins
+# 5. Update and Install
+sudo apt-get update -y
+sudo apt-get install -y jenkins
 
 # 6. Start and Enable Jenkins
 echo "Starting Jenkins Service..."
