@@ -10,3 +10,4 @@ installers/
 # Ignore jenkins-plugin-manager.jar
 jenkins_home/jenkins-plugin-manager.jar
 secrets/
+*.exe
