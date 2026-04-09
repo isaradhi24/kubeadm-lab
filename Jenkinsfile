@@ -1,6 +1,17 @@
 pipeline {
     agent any
-
+    stage('Check for Infra Changes') {
+        steps {
+            script {
+                def changedFiles = sh(script: "git diff --name-only ${env.GIT_PREVIOUS_COMMIT} ${env.GIT_COMMIT}", returnStdout: true).trim()
+                if (!changedFiles.contains("scripts/") && !changedFiles.contains("vagrantfile")) {
+                    currentBuild.result = 'SUCCESS'
+                    echo "No infra changes detected. Skipping bootstrap."
+                    return // This stops the pipeline early
+                }
+            }
+        }
+    }
     stages {
         stage('Preparation') {
             steps {
