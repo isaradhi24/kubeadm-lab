@@ -136,60 +136,24 @@ Vagrant.configure("2") do |config|
         SHELL
       end
       
-      # (Sonar block remain unchanged)
+    # (Sonar block remain unchanged)
       if name == "sonarqube"
         node.vm.synced_folder "./sonarqube_home", "/var/sonarqube_home"
         node.vm.provision "shell", path: "scripts/install_sonarqube.sh"
         node.vm.provision "shell", path: "scripts/config_sonarqube.sh"
       end
-    end
-  end
-end
-
-# --- AUTOMATION TRIGGER: RUNS EVERY TIME YOU START THE LAB ---
-      node.trigger.after :up do |trigger|
-        trigger.name = "Post-Up Automation"
-        trigger.run = { inline: <<-SHELL
-          if [ "#{opts[:role]}" = "master" ]; then
-            echo "Checking Kubernetes API stability..."
-            # Wait for K8s to be ready after boot
-            for i in {1..30}; do
-              if kubectl get nodes --kubeconfig=/home/vagrant/.kube/config >/dev/null 2>&1; then
-                break
-              fi
-              echo "Waiting for API server... ($i/30)"
-              sleep 5
-            done
-
-            echo "Ensuring Application Namespace exists..."
-            kubectl --kubeconfig=/home/vagrant/.kube/config create namespace nginx-ns --dry-run=client -o yaml | kubectl --kubeconfig=/home/vagrant/.kube/config apply -f -
-
-            echo "Starting Persistent ArgoCD Tunnel on port 8443..."
-            # Clean up old processes if they exist
-            sudo pkill -f "port-forward" || true
-            
-            # Start tunnel in background and log to a file
-            nohup kubectl --kubeconfig=/home/vagrant/.kube/config port-forward --address 0.0.0.0 svc/argocd-server -n argocd 8443:443 > /home/vagrant/argocd-tunnel.log 2>&1 &
-            
-            echo "--------------------------------------------------------"
-            echo "LAB READY: Access ArgoCD at https://192.168.56.10:8443"
-            echo "--------------------------------------------------------"
-          fi
-        SHELL
-        }
-      end
 
       # ==========================================================
-      # THE "SANITY SAVER" AUTOMATION
-      # Runs every morning when you 'vagrant up'
+      # THE "SANITY SAVER" AUTOMATION (MOVED INSIDE THE LOOP)
       # ==========================================================
       node.trigger.after :up do |trigger|
         trigger.name = "Final Infrastructure Setup"
         trigger.run = { inline: <<-SHELL
           if [ "#{opts[:role]}" = "master" ]; then
-            echo "--- Waking up Kubernetes ---"
+            echo "--- Waking up Kubernetes (Master) ---"
             for i in {1..30}; do
               if kubectl --kubeconfig=/home/vagrant/.kube/config get nodes >/dev/null 2>&1; then break; fi
+              echo "Waiting for API... ($i/30)"
               sleep 5
             done
             kubectl --kubeconfig=/home/vagrant/.kube/config create namespace nginx-ns --dry-run=client -o yaml | kubectl --kubeconfig=/home/vagrant/.kube/config apply -f -
@@ -201,7 +165,7 @@ end
           fi
 
           if [ "#{name}" = "jenkins-ci" ]; then
-            echo "--- Checking Jenkins ---"
+            echo "--- Checking Jenkins CI ---"
             until curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/login | grep -q "200"; do sleep 5; done
             echo "READY: Jenkins -> http://192.168.56.20:8080"
           fi
@@ -209,3 +173,7 @@ end
         SHELL
         }
       end
+
+    end # This closes 'config.vm.define'
+  end # This closes 'NODES.each'
+end # This closes 'Vagrant.configure'
