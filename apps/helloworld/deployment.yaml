@@ -5,7 +5,7 @@ metadata:
   name: helloworld-deployment
   namespace: hw-ns
 spec:
-  replicas: 5
+  replicas: 3
   selector:
     matchLabels:
       app: helloworld
