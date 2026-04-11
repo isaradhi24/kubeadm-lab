@@ -26,24 +26,28 @@ echo "Installing Java 17..."
 apt-get install -y openjdk-17-jre
 java -version
 
-# 3. Complete Purge of old Jenkins metadata
-echo "Purging old Jenkins metadata..."
+# 3. Complete Purge of ALL old Jenkins traces
+echo "Purging old Jenkins metadata and keys..."
 sudo rm -f /etc/apt/sources.list.d/jenkins.list
+sudo rm -f /usr/share/keyrings/jenkins-keyring.asc
 sudo rm -f /etc/apt/keyrings/jenkins-keyring.gpg
-sudo rm -f /etc/apt/trusted.gpg.d/jenkins* # Sometimes keys hide here!
-sudo apt-key del 5BA31D57A47D22D1 2>/dev/null # Deletes the old key from the legacy store
+# This line removes the specific key that is causing the NO_PUBKEY error from the old trusted store
+sudo apt-key del 7198F4B714ABFC68 2>/dev/null 
 
-# 4. Clean the APT cache for this specific repo
+# 4. Clean APT cache for Jenkins
 sudo rm -rf /var/lib/apt/lists/pkg.jenkins.io*
 
-# 5. Re-add the fresh Key (Using the .asc format directly is often more reliable)
-echo "Adding new Jenkins Repository..."
+# 5. Re-add the Key using the most reliable method
+echo "Downloading fresh Jenkins key..."
 sudo mkdir -p /usr/share/keyrings
-sudo wget -q -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
 
-# 6. Re-add the Source (Notice we point to the .asc file directly)
+# 6. Re-add the Source pointing EXACTLY to that file
 echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
+# 7. Update with a 'clean' flag
+sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/jenkins.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+sudo apt-get update -y
 # 7. Update and Install
 sudo apt-get update -y
 sudo apt-get install -y jenkins
