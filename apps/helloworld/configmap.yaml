@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-html
+  namespace: hw-ns
+data:
+  index.html: |
+    <html>
+      <body style="background-color: #4CAF50; color: white; text-align: center; font-family: sans-serif; padding-top: 50px;">
+        <h1>Hello World! 🚀</h1>
+        <p>This page is served from a Kubernetes ConfigMap!</p>
+        <p>Managed by ArgoCD via GitOps</p>
+      </body>
+    </html>
+    
