@@ -6,9 +6,14 @@
 
 set -ex
 
+# 1. Standard Jenkins location
 JENKINS_HOME="/var/lib/jenkins"
 PLUGINS_FILE="/tmp/plugins.txt"
-PLUGIN_MANAGER_JAR="/var/jenkins_home/jenkins-plugin-manager.jar"
+PLUGIN_MANAGER_JAR="/var/lib/jenkins_home/jenkins-plugin-manager.jar"
+
+# 2. Point this to your SYNCED folder path from the Vagrantfile
+# If your Vagrantfile says: node.vm.synced_folder "./jenkins_home", "/var/jenkins_home"
+PLUGIN_MANAGER_JAR="/var/lib/jenkins_home/jenkins-plugin-manager.jar"
 
 echo "Stopping Jenkins..."
 sudo systemctl stop jenkins || true
@@ -26,9 +31,16 @@ EOF
 # -----------------------------
 # Validate Plugin Manager JAR
 # -----------------------------
+# 3. Ensure the JAR exists (Download it if missing)
 if [ ! -f "$PLUGIN_MANAGER_JAR" ]; then
-  echo "❌ Plugin Manager JAR not found!"
-  exit 1
+    echo "❌ ERROR: I still can't find the JAR at $PLUGIN_MANAGER_JAR"
+    exit 1
+fi
+
+if [ ! -f "$PLUGIN_MANAGER_JAR" ]; then
+  echo "⚠️ Plugin Manager JAR not found in synced folder. Downloading to $PLUGIN_MANAGER_JAR..."
+  sudo wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/latest/download/jenkins-plugin-manager-jar-with-dependencies.jar -O "$PLUGIN_MANAGER_JAR"
+  sudo chown vagrant:vagrant "$PLUGIN_MANAGER_JAR"
 fi
 
 if ! file "$PLUGIN_MANAGER_JAR" | grep -E "Zip archive|Java archive"; then
@@ -47,12 +59,13 @@ sudo rm -rf $JENKINS_HOME/plugins/*
 # -----------------------------
 # Install plugins with dependencies
 # -----------------------------
-echo "Installing plugins..."
-
+# We use --jenkins-update-center to ensure it knows where to get the files
+echo "Installing plugins using local JAR..."
 sudo java -jar "$PLUGIN_MANAGER_JAR" \
   --plugin-file "$PLUGINS_FILE" \
   --plugin-download-directory "$JENKINS_HOME/plugins" \
-  --war /usr/share/java/jenkins.war
+  --war /usr/share/java/jenkins.war \
+  --jenkins-update-center
 
 # Fix ownership
 sudo chown -R jenkins:jenkins $JENKINS_HOME

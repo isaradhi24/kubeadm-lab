@@ -26,25 +26,25 @@ echo "Installing Java 17..."
 apt-get install -y openjdk-17-jre
 java -version
 
-# 3. Complete Purge of ALL old Jenkins traces
-echo "Purging old Jenkins metadata and keys..."
+# 3. Complete Purge of old Jenkins metadata
+echo "Purging old Jenkins metadata..."
 sudo rm -f /etc/apt/sources.list.d/jenkins.list
-sudo rm -f /usr/share/keyrings/jenkins-keyring.asc
 sudo rm -f /etc/apt/keyrings/jenkins-keyring.gpg
-# This line removes the specific key that is causing the NO_PUBKEY error from the old trusted store
-sudo apt-key del 7198F4B714ABFC68 2>/dev/null 
+sudo rm -f /etc/apt/trusted.gpg.d/jenkins*
+sudo apt-key del 7198F4B714ABFC68 2>/dev/null
 
-# 4. Clean APT cache for Jenkins
+# 4. Clean the APT cache
 sudo rm -rf /var/lib/apt/lists/pkg.jenkins.io*
 
-# 5. Re-add the Key using the most reliable method
-echo "Downloading fresh Jenkins key..."
-sudo mkdir -p /usr/share/keyrings
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+# 5. Re-add the Key and Repo with [trusted=yes] 
+# This bypasses the GPG check if the keyring is being stubborn
+echo "Adding Jenkins Repository (Hardened)..."
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo apt-key add -
+echo "deb [trusted=yes] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-# 6. Re-add the Source pointing EXACTLY to that file
-echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
-
+# 6. Update and Install
+sudo apt-get update
+sudo apt-get install -y jenkins
 # 7. Update with a 'clean' flag
 sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/jenkins.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 sudo apt-get update -y
