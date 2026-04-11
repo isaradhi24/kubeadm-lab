@@ -11,4 +11,4 @@ installers/
 jenkins_home/jenkins-plugin-manager.jar
 secrets/
 *.exe
-
+.ruby-version

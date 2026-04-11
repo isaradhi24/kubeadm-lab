@@ -35,13 +35,14 @@ sudo apt-key del 5BA31D57A47D22D1 2>/dev/null # Deletes the old key from the leg
 
 # 4. Clean the APT cache for this specific repo
 sudo rm -rf /var/lib/apt/lists/pkg.jenkins.io*
-# 5. Re-add the fresh Key
-echo "Adding new Jenkins Repository..."
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo gpg --dearmor --yes -o /etc/apt/keyrings/jenkins-keyring.gpg
 
-# 6. Re-add the Source
-echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.gpg] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+# 5. Re-add the fresh Key (Using the .asc format directly is often more reliable)
+echo "Adding new Jenkins Repository..."
+sudo mkdir -p /usr/share/keyrings
+sudo wget -q -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+
+# 6. Re-add the Source (Notice we point to the .asc file directly)
+echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
 # 7. Update and Install
 sudo apt-get update -y
