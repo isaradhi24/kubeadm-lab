@@ -111,6 +111,7 @@ Vagrant.configure("2") do |config|
       # (Jenkins-ci block)
       if name == "jenkins-ci"
         node.vm.synced_folder "./jenkins_home", "/var/lib/jenkins_home"
+        node.vm.synced_folder "./pipelines", "/var/lib/jenkins_home/pipelines"
         node.vm.synced_folder "./docker_home", "/var/docker_home"
         node.vm.provision "shell", path: "scripts/install_docker.sh"
         node.vm.provision "shell", path: "scripts/config_docker.sh"
