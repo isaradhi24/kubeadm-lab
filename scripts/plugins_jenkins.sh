@@ -64,8 +64,7 @@ echo "Installing plugins using local JAR..."
 sudo java -jar "$PLUGIN_MANAGER_JAR" \
   --plugin-file "$PLUGINS_FILE" \
   --plugin-download-directory "$JENKINS_HOME/plugins" \
-  --war /usr/share/java/jenkins.war \
-  --jenkins-update-center
+  --war /usr/share/java/jenkins.war
 
 # Fix ownership
 sudo chown -R jenkins:jenkins $JENKINS_HOME
