@@ -25,6 +25,16 @@ cat <<EOF | sudo tee $PLUGINS_FILE
 workflow-aggregator
 git
 ws-cleanup
+docker-build-step
+Command Agent Launcher
+EDDSA API Plugin
+ssh agent
+Trilead API
+SSH server
+Generic Webhook TriggerVersion
+Pipeline Stage View
+
+
 
 EOF
 
