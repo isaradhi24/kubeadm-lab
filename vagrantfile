@@ -107,11 +107,20 @@ Vagrant.configure("2") do |config|
             sleep 2
           done
           echo "API is up! Installing ArgoCD..."
-          
+
           # Auto-install ArgoCD
           kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml 
           sudo kubeadm token create --print-join-command > /vagrant/kube_join.sh
+        fi
+
+        if kubectl get svc argocd-server -n argocd > /dev/null 2>&1; then
+          echo "Configuring ArgoCD NodePort on 30008..."
+          # Change service type to NodePort
+          kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
+          # Set the static port to 30008
+          kubectl patch svc argocd-server -n argocd --type='json' -p='[{"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30008}]'
+          echo "ArgoCD is now accessible at https://#{opts[:ip]}:30008"
         fi
 
         if [ "#{opts[:role]}" = "worker" ]; then
@@ -160,7 +169,10 @@ Vagrant.configure("2") do |config|
       node.vm.provision "Post-Setup", type: "shell", privileged: true, inline: <<-SHELL
         if [ "#{opts[:role]}" = "master" ]; then
           echo "Waiting for K8s API..."
-          export KUBECONFIG=/home/vagrant/.kube/config
+          if ! grep -q "KUBECONFIG" /home/vagrant/.bashrc; then
+            echo "export KUBECONFIG=/home/vagrant/.kube/config" >> /home/vagrant/.bashrc
+          fi
+          # export KUBECONFIG=/home/vagrant/.kube/config
           until kubectl get nodes; do sleep 5; done
           
           echo "Ensuring Namespaces..."
