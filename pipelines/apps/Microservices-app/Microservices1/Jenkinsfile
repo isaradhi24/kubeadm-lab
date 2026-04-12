@@ -47,24 +47,25 @@ pipeline {
                 script {
                 // Using credentials for the git push
                 withCredentials([usernamePassword(credentialsId: 'GitHub_ID', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
-        
-                // 1. Fetch all branches and switch to main properly
+                
+                // 1. Force Git to use the credentials for the remote URL
+                sh "git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/${GIT_USER}/kubeadm-lab.git"
+                
+                // 2. Now fetch and checkout will work without asking for a password
                 sh "git fetch origin"
                 sh "git checkout main || git checkout -b main"
                 sh "git pull origin main"
 
-                // 2. Update the image version
+                // 3. Update the image version
                 def deploymentPath = "apps/Microservices-app/Microservice1/deployment.yaml"
                 sh "sed -i 's|image: .*:.*|image: ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}|' ${deploymentPath}"
 
-                // 3. Commit and Push
+                // 4. Commit and Push
                 sh "git config user.email 'jenkins@example.com'"
                 sh "git config user.name 'Jenkins CI'"
                 sh "git add ${deploymentPath}"
                 sh "git commit -m 'Jenkins Build #${env.BUILD_NUMBER}: Update image' || echo 'No changes to commit'"
-        
-                // Use the authenticated URL
-                sh "git push https://${GIT_USER}:${GIT_PASS}@github.com/${GIT_USER}/kubeadm-lab.git main"
+                sh "git push origin main"
                 }
             }
         }
