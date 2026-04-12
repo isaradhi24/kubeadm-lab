@@ -20,10 +20,11 @@ pipeline {
 }
         stage('Build Docker Image') {
             steps {
+                echo "Building Docker image for ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}"
                 script {
                     sh "pwd"
                     sh "ls -l pipelines/apps/Microservices-app/Microservices1"
-                    
+
                     // Moving the variable inside a script block makes it valid Groovy
                     def appPath = "pipelines/apps/Microservices-app/Microservices1"
                     
