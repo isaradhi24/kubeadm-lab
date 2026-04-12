@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: ms1-container
-        image: nginx:alpine # Placeholder until we build the real Java image
+        image: isaradhi24/kubeadm-lab-java:25
         ports:
         - containerPort: 80
 ---
