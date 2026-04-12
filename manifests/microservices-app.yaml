@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/isaradhi24/kubadmin-labs.git'
+    repoURL: 'https://github.com/isaradhi24/kubadmin-lab.git'
     targetRevision: HEAD
     path: apps/Microservices-app/Microservice1
   destination:
