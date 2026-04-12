@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: ms1-container
-        image: isaradhi24/kubeadm-lab-java:69
+        image: isaradhi24/kubeadm-lab-java:70
         ports:
         - containerPort: 80
 ---
