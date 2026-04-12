@@ -20,7 +20,8 @@ pipeline {
 }
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker image for ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}"
+                echo "Building Docker image"
+                #echo "Building Docker image for ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}"
                 script {
                     sh "pwd"
                     sh "ls -l pipelines/apps/Microservices-app/Microservices1"
