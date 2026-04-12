@@ -45,7 +45,7 @@ pipeline {
         stage('Update Git Manifest') {
             steps {
                 script {
-                / Using credentials for the git push
+                // Using credentials for the git push
                 withCredentials([usernamePassword(credentialsId: 'github-creds', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
                 
                 // 1. Re-attach to the main branch
@@ -71,5 +71,5 @@ pipeline {
         }
     }
    }
-    
+ }   
 }
