@@ -20,9 +20,13 @@ pipeline {
 }
         stage('Build Docker Image') {
             steps {
-                def appPath = "apps/Microservices-app/Microservices1"
-                sh "docker build -t ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER} ."
-                sh "docker tag ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER} ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:latest"
+                script {
+                    // Moving the variable inside a script block makes it valid Groovy
+                    def appPath = "apps/Microservices-app/Microservices1"
+                    
+                    sh "docker build -t ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER} ${appPath}"
+                    sh "docker tag ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER} ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:latest"
+                }
             }
         }
         stage('Push to Docker Hub') {
