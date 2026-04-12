@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_HUB_USER = 'isaradhi24'
+        DOCKER_HUB_REPO = 'kubeadm-lab-java' // Or your preferred repo name
+        GIT_REPO_URL    = 'https://github.com/isaradhi24/kubeadm-lab.git'
+    }
+    stages {
+        stage('Checkout') {
+    steps {
+        checkout([$class: 'GitSCM', 
+            branches: [[name: '*/main']], 
+            extensions: [], 
+            userRemoteConfigs: [[
+                credentialsId: 'GitHub_ID', 
+                url: 'https://github.com/isaradhi24/kubeadm-lab.git'
+            ]]
+        ])
+    }
+}
+        stage('Build Docker Image') {
+            steps {
+                def appPath = "apps/Microservices-app/Microservices1"
+                sh "docker build -t ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER} ."
+                sh "docker tag ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER} ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:latest"
+            }
+        }
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'DockerHub_ID', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    sh "echo \$PASS | docker login -u \$USER --password-stdin"
+                    sh "docker push ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}"
+                    sh "docker push ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:latest"
+                }
+            }
+        }
+        stage('Update Git Manifest') {
+            steps {
+                script {
+                    // This command finds the 'image:' line and replaces it with the new build version
+                    sh "sed -i 's|image: .*|image: ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}|' manifests/microservices-app.yaml"
+                    
+                    withCredentials([usernamePassword(credentialsId: 'github-creds', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
+                        sh "git config user.email 'jenkins@jenkins-ci.com'"
+                        sh "git config user.name 'Jenkins CI'"
+                        sh "git add manifests/microservices-app.yaml"
+                        sh "git commit -m 'Jenkins Build #${env.BUILD_NUMBER}: Update image to version ${env.BUILD_NUMBER}'"
+                        sh "git push https://${GIT_USER}:${GIT_PASS}@github.com/isaradhi24/kubeadm-lab.git HEAD:main"
+                    }
+                }
+            }
+        }
+    }
+}
