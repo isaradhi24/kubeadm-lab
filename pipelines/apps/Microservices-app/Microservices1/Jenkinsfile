@@ -45,18 +45,31 @@ pipeline {
         stage('Update Git Manifest') {
             steps {
                 script {
-                    // This command finds the 'image:' line and replaces it with the new build version
-                    sh "sed -i 's|image: .*|image: ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}|' manifests/microservices-app.yaml"
-                    
-                    withCredentials([usernamePassword(credentialsId: 'GitHub_ID', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
-                        sh "git config user.email 'jenkins@jenkins-ci.com'"
-                        sh "git config user.name 'Jenkins CI'"
-                        sh "git add manifests/microservices-app.yaml"
-                        sh "git commit -m 'Jenkins Build #${env.BUILD_NUMBER}: Update image to version ${env.BUILD_NUMBER}'"
-                        sh "git push https://${GIT_USER}:${GIT_PASS}@github.com/isaradhi24/kubeadm-lab.git HEAD:main"
-                    }
-                }
+                / Using credentials for the git push
+                withCredentials([usernamePassword(credentialsId: 'github-creds', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
+                
+                // 1. Re-attach to the main branch
+                sh "git checkout main"
+                
+                // 2. Update the image version in the deployment file
+                // This uses 'sed' to find the image line and swap the tag
+                sh "sed -i 's|image: .*:.*|image: ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}|' apps/Microservices-app/Microservice1/deployment.yaml"
+                
+                // 3. Configure local git identity for this commit
+                sh "git config user.email 'jenkins@example.com'"
+                sh "git config user.name 'Jenkins CI'"
+                
+                // 4. Add, Commit, and Push
+                sh "git add apps/Microservices-app/Microservice1/deployment.yaml"
+                
+                // The '|| true' prevents failure if there's nothing to commit
+                sh "git commit -m 'Jenkins Build #${env.BUILD_NUMBER}: Update image' || true"
+                
+                // Use the credentials in the URL for the push
+                sh "git push https://${GIT_USER}:${GIT_PASS}@github.com/${GIT_USER}/kubeadm-lab.git main"
             }
         }
     }
+   }
+    
 }
