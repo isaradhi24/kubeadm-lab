@@ -46,7 +46,7 @@ pipeline {
             steps {
                 script {
                 // Using credentials for the git push
-                withCredentials([usernamePassword(credentialsId: 'github-creds', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
+                withCredentials([usernamePassword(credentialsId: 'GitHub_ID', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
                 
                 // 1. Re-attach to the main branch
                 sh "git checkout main"
