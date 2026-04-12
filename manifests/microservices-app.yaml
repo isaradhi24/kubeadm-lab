@@ -1,4 +1,4 @@
-apiVersion: argoproject.io/v1alpha1
+apiVersion: argoproject.io/v1
 kind: Application
 metadata:
   name: Microservices-app
