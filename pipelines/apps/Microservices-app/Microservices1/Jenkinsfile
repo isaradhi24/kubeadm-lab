@@ -48,7 +48,7 @@ pipeline {
                     // This command finds the 'image:' line and replaces it with the new build version
                     sh "sed -i 's|image: .*|image: ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}|' manifests/microservices-app.yaml"
                     
-                    withCredentials([usernamePassword(credentialsId: 'github-creds', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
+                    withCredentials([usernamePassword(credentialsId: 'GitHub_ID', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
                         sh "git config user.email 'jenkins@jenkins-ci.com'"
                         sh "git config user.name 'Jenkins CI'"
                         sh "git add manifests/microservices-app.yaml"
