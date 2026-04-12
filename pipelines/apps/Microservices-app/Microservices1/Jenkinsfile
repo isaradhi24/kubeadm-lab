@@ -25,10 +25,10 @@ pipeline {
                 // echo "Building Docker image for ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}"
                 script {
                     sh "pwd"
-                    sh "ls -l pipelines/apps/Microservices-app/Microservices1"
+                    sh "ls -l apps/Microservices-app/Microservices1"
 
                     // Moving the variable inside a script block makes it valid Groovy
-                    def appPath = "pipelines/apps/Microservices-app/Microservices1"
+                    def appPath = "apps/Microservices-app/Microservices1"
                     
                     sh "docker build -t ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER} ${appPath}"
                     sh "docker tag ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:${env.BUILD_NUMBER} ${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}:latest"
