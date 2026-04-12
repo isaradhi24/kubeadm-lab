@@ -1,0 +1,20 @@
+apiVersion: argoproject.io/v1alpha1
+kind: Application
+metadata:
+  name: Mcroservices-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/isaradhi24/kubadmin-labs.git'
+    targetRevision: HEAD
+    path: apps/Mcroservices-app/Mcroservice1
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev-ns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
