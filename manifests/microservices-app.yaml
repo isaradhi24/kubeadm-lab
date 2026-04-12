@@ -1,14 +1,14 @@
 apiVersion: argoproject.io/v1alpha1
 kind: Application
 metadata:
-  name: Mcroservices-app
+  name: Microservices-app
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/isaradhi24/kubadmin-labs.git'
     targetRevision: HEAD
-    path: apps/Mcroservices-app/Mcroservice1
+    path: apps/Microservices-app/Microservice1
   destination:
     server: https://kubernetes.default.svc
     namespace: dev-ns
