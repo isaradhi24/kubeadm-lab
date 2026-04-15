@@ -76,7 +76,7 @@ Vagrant.configure("2") do |config|
         if [ "#{opts[:role]}" != "manual" ]; then
           echo "==== Provisioning K8s Node: #{name} ===="
           sudo swapoff -a
-          sudo sed -i '/swap/d' /etc/fstab
+          sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
           echo -e "overlay\\nbr_netfilter" | sudo tee /etc/modules-load.d/k8s.conf
           sudo modprobe overlay
           sudo modprobe br_netfilter
