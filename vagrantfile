@@ -10,6 +10,7 @@
 # Vagrantfile: Production-Grade Kubernetes Lab (STABLE)
 #==========================================================
 
+
 Vagrant.configure("2") do |config|
 
   config.vm.box = "bento/ubuntu-22.04"
@@ -26,10 +27,17 @@ Vagrant.configure("2") do |config|
   config.vm.boot_timeout = 900
 
   NODES = {
-    "k8s-master"  => { ip: "192.168.56.10", ram: 4096, cpus: 2, role: "master" },
-    "k8s-worker1" => { ip: "192.168.56.11", ram: 1536, cpus: 1, role: "worker" },
-    "jenkins-ci"  => { ip: "192.168.56.20", ram: 2048, cpus: 2, role: "manual" },
-    "sonarqube"   => { ip: "192.168.56.30", ram: 4096, cpus: 2, role: "manual" }
+    # Kubernetes Control Plane (Master)
+  "k8s-master"  => { ip: "192.168.56.10", ram: 4096, cpus: 2, role: "master" },
+  
+  # Kubernetes Worker (Where your Java app lives)
+  "k8s-worker1" => { ip: "192.168.56.11", ram: 2048, cpus: 2, role: "worker" },
+  
+  # Jenkins for CI/CD
+  "jenkins-ci"  => { ip: "192.168.56.20", ram: 2048, cpus: 2, role: "manual" },
+  
+  # THE NEW ELK SERVER (Replacing Sonarqube)
+  "elk-server"  => { ip: "192.168.56.30", ram: 6144, cpus: 2, role: "manual" }
   }
 
   NODES.each do |name, opts|
@@ -159,13 +167,7 @@ Vagrant.configure("2") do |config|
         SHELL
       end
       
-    # (Sonar block remain unchanged)
-      if name == "sonarqube"
-        node.vm.synced_folder "./sonarqube_home", "/var/sonarqube_home"
-        node.vm.provision "shell", path: "scripts/install_sonarqube.sh"
-        node.vm.provision "shell", path: "scripts/config_sonarqube.sh"
-      end
-    
+     
       # Put this inside the NODES.each loop, right after the Jenkins/Sonar blocks
       node.vm.provision "Post-Setup", type: "shell", privileged: true, inline: <<-SHELL
         if [ "#{opts[:role]}" = "master" ]; then
@@ -190,37 +192,13 @@ Vagrant.configure("2") do |config|
         fi
       SHELL
     
-      # ==========================================================
-      # THE "SANITY SAVER" AUTOMATION (MOVED INSIDE THE LOOP)
-      # ==========================================================
-      # node.trigger.after :up do |trigger|
-      #   trigger.name = "Final Infrastructure Setup"
-      #   trigger.run = { inline: <<-SHELL
-      #     if [ "#{opts[:role]}" = "master" ]; then
-      #       echo "--- Waking up Kubernetes (Master) ---"
-      #       for i in {1..30}; do
-      #         if kubectl --kubeconfig=/home/vagrant/.kube/config get nodes >/dev/null 2>&1; then break; fi
-      #         echo "Waiting for API... ($i/30)"
-      #         sleep 5
-      #       done
-      #       kubectl --kubeconfig=/home/vagrant/.kube/config create namespace nginx-ns --dry-run=client -o yaml | kubectl --kubeconfig=/home/vagrant/.kube/config apply -f -
-            
-      #       echo "--- Starting ArgoCD Tunnel ---"
-      #       sudo pkill -f "port-forward" || true
-      #       nohup kubectl --kubeconfig=/home/vagrant/.kube/config port-forward --address 0.0.0.0 svc/argocd-server -n argocd 8443:443 > /home/vagrant/argocd-tunnel.log 2>&1 &
-      #       echo "READY: ArgoCD -> https://192.168.56.10:8443"
-      #     fi
-
-      #     if [ "#{name}" = "jenkins-ci" ]; then
-      #       echo "--- Checking Jenkins CI ---"
-      #       until curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/login | grep -q "200"; do sleep 5; done
-      #       echo "READY: Jenkins -> http://192.168.56.20:8080"
-      #     fi
-      #     echo "=========================================================="
-      #   SHELL
-      #   }
-      # end
-
+      # (ELK block)
+      if name == "elk-server"
+        node.vm.synced_folder "./elk_home", "/var/elk_home"
+        node.vm.provision "shell", path: "scripts/install_elk.sh"
+        node.vm.provision "shell", path: "scripts/config_elk.sh"
+      end
+      
     end # This closes 'config.vm.define'
   end # This closes 'NODES.each'
 end # This closes 'Vagrant.configure'
