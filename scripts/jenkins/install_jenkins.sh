@@ -58,7 +58,17 @@ systemctl daemon-reload
 systemctl enable jenkins
 systemctl start jenkins
 
-# 9. Configure Docker Permissions
+# 9. Disable the Setup Wizard in the systemd unit file
+sudo sed -i 's|Environment="JAVA_OPTS=-Djava.awt.headless=true|Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false|' /lib/systemd/system/jenkins.service
+
+# 10. Force Jenkins to believe the install is already finished
+sudo mkdir -p /var/lib/jenkins
+echo "2.541.3" | sudo tee /var/lib/jenkins/jenkins.install.UpgradeWizard.state
+echo "2.541.3" | sudo tee /var/lib/jenkins/jenkins.install.InstallUtil.lastExecVersion
+sudo chown -R jenkins:jenkins /var/lib/jenkins
+
+
+# 11. Configure Docker Permissions
 # Crucial: This allows Jenkins to run Docker commands for your Pipeline
 echo "Configuring Docker group for Jenkins user..."
 if getent group docker; then
@@ -68,13 +78,13 @@ else
     echo "Warning: Docker group not found. Ensure install_docker.sh ran first."
 fi
 
-# 11. Firewall (UFW)
+# 12. Firewall (UFW)
 if command -v ufw >/dev/null 2>&1; then
     sudo ufw allow 8080/tcp
     sudo ufw reload
 fi
 
-# 12. Output Access Info
+# 13. Output Access Info
 # We use eth1 because Vagrant usually assigns the private static IP there
 IP_ADDR=$(ip -4 addr show eth1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' || hostname -I | awk '{print $2}')
 
