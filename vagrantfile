@@ -194,10 +194,13 @@ Vagrant.configure("2") do |config|
     
       # (ELK block)
       if name == "elk-server"
+        
         node.vm.synced_folder "./elk_home", "/var/elk_home"
-        node.vm.synced_folder "scripts", "/home/vagrant/scripts"
-        node.vm.provision "shell", path: "scripts/install_elk.sh"
-        node.vm.provision "shell", path: "scripts/config_elk.sh"
+
+        Executing scripts from the synced folder to  install and configure ELK stack
+        node.vm.provision "shell", path: "scripts/elk/install_elk.sh"
+        node.vm.provision "shell", path: "scripts/elk/config_elk.sh"
+        node.vm.provision "shell", path: "scripts/elk/config_logstash.sh"
       end
       
     end # This closes 'config.vm.define'
