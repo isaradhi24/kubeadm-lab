@@ -48,4 +48,4 @@ kubeadm-lab/ (Root Project Dir)
 ├── secrets/                   # <--- Local keys (STRICTLY ignored by git)
 └── jenkins_home/              # <--- Jenkins Configuration as Code
     └── casc_configs/
-        └── jenkins.yaml
+        └── jenkins.yaml# Last Update: Thu Apr 16 16:09:35 EDT 2026
