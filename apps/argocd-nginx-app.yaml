@@ -11,8 +11,10 @@ spec:
     path: apps/my-nginx-app/manifests
   destination:
     server: https://kubernetes.default.svc
-    namespace: default
+    namespace: nginx-ns
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      
