@@ -1,0 +1,8 @@
+name: CI Pipeline
+on: [push]
+jobs:
+  build:
+    runs-on: k8s-worker1
+    steps:
+      - uses: actions/checkout@v4
+      - run: kubectl apply -f apps/app-test/app-test.yml # This points to the other file!
