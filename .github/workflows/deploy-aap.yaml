@@ -1,18 +1,17 @@
 name: CI Pipeline
 on: [push]
+
 jobs:
   build:
     runs-on: [self-hosted, linux, x64]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4      
-      - name: Bootstrap ArgoCD Application
+        uses: actions/checkout@v4
+      
+      - name: Update ArgoCD Application
         run: | 
-          # This creates the ArgoCD "Project"in the UI atomatically. You can also create it manually if you prefer.
-           kubectl apply -f apps/argocd-nginx-app.yaml
-
-           #This applies the acrual resourcs for the app
-           kubectl apply -f apps/my-nginx-app/manifests
-
-
-           echo "ArgoCD App created and manifests applied successfully!"
+           # We ONLY apply the 'manager' file. 
+           # We do NOT apply the apps/my-nginx-app/manifests/ folder here!
+           kubectl apply -f argocd-nginx-app.yaml
+           
+           echo "ArgoCD has received the update. Check the UI for namespace creation and deployment."
