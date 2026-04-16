@@ -3,7 +3,7 @@ on: [push]
 
 jobs:
   check-cluster:
-    runs-on: self-hosted  # This is the "magic" line
+    runs-on: k8s-worker1  # This is the "magic" line
     steps:
       - name: Hello World
         run: echo "The runner is alive on $(hostname)"
