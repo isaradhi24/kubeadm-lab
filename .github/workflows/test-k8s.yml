@@ -1,0 +1,12 @@
+name: K8s Connectivity Test
+on: [push]
+
+jobs:
+  check-cluster:
+    runs-on: self-hosted  # This is the "magic" line
+    steps:
+      - name: Hello World
+        run: echo "The runner is alive on $(hostname)"
+
+      - name: Check K8s Access
+        run: kubectl get nodes

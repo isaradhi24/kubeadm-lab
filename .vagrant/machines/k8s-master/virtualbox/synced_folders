@@ -1,0 +1,1 @@
+{"virtualbox":{"/home/vagrant/manifests":{"guestpath":"/home/vagrant/manifests","hostpath":"D:/Devops/kubeadm-lab/infra/manifests","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"D:/Devops/kubeadm-lab","disabled":false,"__vagrantfile":true}}}
