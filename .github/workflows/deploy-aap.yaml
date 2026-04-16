@@ -10,4 +10,5 @@ jobs:
       - name: Deploy to Cluster
         run: | 
            kubectl apply -f apps/app-test/app-test.yml
-           kubectl get pods -n default  
+           kubectl get pods -n default 
+           echo "Deployment completed successfully!" 
