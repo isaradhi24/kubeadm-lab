@@ -7,7 +7,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Verify cluster access
+      - name: Deploy to Cluster
         run:  
-           echo "Bypassing label issues! Running on $(hostname)" 
-           kubectl get nodes --show-labels  
+           kubectl apply -f apps/app-test/app-test.yml
+           kubectl get pods -n default  
