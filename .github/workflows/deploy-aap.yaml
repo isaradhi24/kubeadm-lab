@@ -5,10 +5,14 @@ jobs:
     runs-on: [self-hosted, linux, x64]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Deploy to Cluster
+        uses: actions/checkout@v4      
+      - name: Bootstrap ArgoCD Application
         run: | 
-           kubectl apply -f apps/app-test/app-test.yml
-           kubectl get pods -n default 
-           echo "Deployment completed successfully!" 
+          # This creates the ArgoCD "Project"in the UI atomatically. You can also create it manually if you prefer.
+           kubectl apply -f apps/argocd-nginx-app.yaml
+
+           #This applies the acrual resourcs for the app
+           kubectl apply -f apps/my-nginx-app/manifests
+
+
+           echo "ArgoCD App created and manifests applied successfully!"
