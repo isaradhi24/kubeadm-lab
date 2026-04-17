@@ -133,7 +133,12 @@ Vagrant.configure("2") do |config|
 
       # --- ELK SERVER PROVISIONING ---
       if name == "elk-server"
-        node.vm.synced_folder "./elk_home", "/var/elk_home"
+        # Map the data/home directory
+        node.vm.synced_folder "./elk_home", "/home/vagrant/elk_home"
+        # Map the scripts directory 
+        node.vm.synced_folder "./scripts/elk", "/home/vagrant/scripts/elk"
+
+        # Provisioning still works using the HOST path
         node.vm.provision "shell", path: "scripts/elk/install_elk.sh"
         node.vm.provision "shell", path: "scripts/elk/config_elk.sh"
         node.vm.provision "shell", path: "scripts/elk/config_logstash.sh"

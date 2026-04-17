@@ -1,0 +1,40 @@
+Log into your elk-server (192.168.56.30) and execute the following sequence.
+
+1. The Kernel Tune-Up (Mandatory)
+Elasticsearch will fail to start if the virtual memory limits are too low.
+
+sudo sysctl -w vm.max_map_count=262144
+echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+
+
+2. Run the Installation Script
+
+cd ~/scripts/elk
+sudo ./install_elk.sh
+
+
+Fantastic. The stage is set, the Kubernetes cluster is healthy, and the path to the ELK node is clear.
+
+🐘 Phase 2: ELK Stack Deployment
+Log into your elk-server (192.168.56.30) and execute the following sequence.
+
+1. The Kernel Tune-Up (Mandatory)
+Elasticsearch will fail to start if the virtual memory limits are too low.
+
+Bash
+sudo sysctl -w vm.max_map_count=262144
+echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+2. Run the Installation Script
+Bash
+cd ~/scripts/elk
+sudo ./install_elk.sh
+🛑 CRITICAL: Watch the Terminal Output!
+Since you are likely installing Elasticsearch 8.x, the installer will generate security credentials only once at the very end of the apt-get install process.
+
+DO NOT CLEAR YOUR SCREEN. Look for a block of text that looks like this:
+
+✅ Elasticsearch security features have been automatically configured!
+✅ Authentication is enabled and cluster connections are encrypted.
+
+ℹ️  Password for the elastic user: xxxxxxxxxxxxxxxxxxxx 👈 SAVE THIS!
+ℹ️  HTTP CA certificate SHA256 fingerprint: ab12...cd34 👈 SAVE THIS!
