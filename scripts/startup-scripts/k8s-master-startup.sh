@@ -24,6 +24,6 @@ kubectl get nodes
 # 5. Fix ArgoCD (Clear old tunnels and start a new one)
 echo "🔧 Setting up ArgoCD Bridge..."
 sudo pkill -f "port-forward" || true
-nohup kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0 > /dev/null 2>&1 &
+nohup kubectl port-forward svc/argocd-server -n argocd 8888:443 --address 0.0.0.0 > /dev/null 2>&1 &
 
-echo "✨ Master is ready! ArgoCD: https://192.168.56.10:8080"
+echo "✨ Master is ready! ArgoCD: https://192.168.56.10:8888"
