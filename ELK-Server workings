@@ -1,3 +1,6 @@
+Step 1: INSTALLATION PHASE
+         -------------------
+
 Log into your elk-server (192.168.56.30) and execute the following sequence.
 
 1. The Kernel Tune-Up (Mandatory)
@@ -6,35 +9,99 @@ Elasticsearch will fail to start if the virtual memory limits are too low.
 sudo sysctl -w vm.max_map_count=262144
 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
 
-
-2. Run the Installation Script
+1. Run the Installation Script
 
 cd ~/scripts/elk
 sudo ./install_elk.sh
 
-
-Fantastic. The stage is set, the Kubernetes cluster is healthy, and the path to the ELK node is clear.
-
-🐘 Phase 2: ELK Stack Deployment
-Log into your elk-server (192.168.56.30) and execute the following sequence.
-
-1. The Kernel Tune-Up (Mandatory)
-Elasticsearch will fail to start if the virtual memory limits are too low.
-
-Bash
-sudo sysctl -w vm.max_map_count=262144
-echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
-2. Run the Installation Script
-Bash
-cd ~/scripts/elk
-sudo ./install_elk.sh
 🛑 CRITICAL: Watch the Terminal Output!
-Since you are likely installing Elasticsearch 8.x, the installer will generate security credentials only once at the very end of the apt-get install process.
 
-DO NOT CLEAR YOUR SCREEN. Look for a block of text that looks like this:
+Look at these lines from your log:
 
-✅ Elasticsearch security features have been automatically configured!
-✅ Authentication is enabled and cluster connections are encrypted.
+logstash is already the newest version (1:8.19.14-1).
+kibana is already the newest version (8.19.14).
+elasticsearch is already the newest version (8.19.14).
 
-ℹ️  Password for the elastic user: xxxxxxxxxxxxxxxxxxxx 👈 SAVE THIS!
-ℹ️  HTTP CA certificate SHA256 fingerprint: ab12...cd34 👈 SAVE THIS!
+Step 2: CONFIGURTAION PHASE
+        -------------------
+
+1. Run the Configuration Script
+    cd scripts/elk
+    chmod +x config_elk
+    sudo ./config_elk
+
+2. verify -->
+vagrant@elk-server:~/scripts/elk$ ss -tulpn | grep 9200
+tcp   LISTEN 0      4096                *:9200            *:*
+vagrant@elk-server:~/scripts/elk$ curl http://localhost:9200
+{
+  "name" : "elk-server",
+  "cluster_name" : "my-kubeadm-lab",
+  "cluster_uuid" : "1cTvBM2AQAKhx1qzAWqj2A",
+  "version" : {
+    "number" : "8.19.14",
+    "build_flavor" : "default",
+    "build_type" : "deb",
+    "build_hash" : "f9adf4c29021dbda28cae7d9c11924471798723d",
+    "build_date" : "2026-04-02T15:09:12.561504739Z",
+    "build_snapshot" : false,
+    "lucene_version" : "9.12.2",
+    "minimum_wire_compatibility_version" : "7.17.0",
+    "minimum_index_compatibility_version" : "7.0.0"
+  },
+  "tagline" : "You Know, for Search"
+}
+3. Check if Electicsearchis actually running:
+    sudo systemctlstatus elasticsearch
+
+4. Check the port on the ELK Server
+    ss -tulnp | grep 5601
+
+5. Access ELK server from browsr
+
+Elasticsearch: Verified and responding at 192.168.56.30:9200.
+
+    " WELCOME TO ELASTIC"    
+
+Kibana: Should be fully loaded and reachable at http://192.168.56.30:5601.
+
+    {
+  "name" : "elk-server",
+  "cluster_name" : "my-kubeadm-lab",
+  "cluster_uuid" : "1cTvBM2AQAKhx1qzAWqj2A",
+  "version" : {
+    "number" : "8.19.14",
+    "build_flavor" : "default",
+    "build_type" : "deb",
+    "build_hash" : "f9adf4c29021dbda28cae7d9c11924471798723d",
+    "build_date" : "2026-04-02T15:09:12.561504739Z",
+    "build_snapshot" : false,
+    "lucene_version" : "9.12.2",
+    "minimum_wire_compatibility_version" : "7.17.0",
+    "minimum_index_compatibility_version" : "7.0.0"
+  },
+  "tagline" : "You Know, for Search"
+}
+
+Step 3: The shipping Department - Filebeat
+        -------------------------------------
+install Filebeat manually on every worker.in the Kubernetes Way: using a DaemonSet.
+
+Step 4: Connection  
+        ---------
+4.1. Logstash
+    Before you push the filebeat yaml, logstash mush be ready to catch the data port 5044
+    Run this on the ELK Server (192.168.56.30):
+
+    # Run your logstash config script
+    sudo ~/scripts/elk/config_logstash.sh
+        Created symlink /etc/systemd/system/multi-user.target.wants/logstash.service → /lib/systemd/system/logstash.
+
+    # Ensure the service is restarted to pick up the new pipeline
+    sudo systemctl restart logstash
+
+    2. Verify Logstash is listening:
+        ss -tulpn | grep 5044
+
+    3. Now push the Filebeat-kubernetes.yaml to remote gitrepo
+

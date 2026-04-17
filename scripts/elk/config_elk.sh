@@ -2,7 +2,7 @@
 
 # 1. Force 1GB RAM limit (Overwrites to avoid duplicates)
 sudo mkdir -p /etc/elasticsearch/jvm.options.d/
-echo "-Xms1g" | sudo予 tee /etc/elasticsearch/jvm.options.d/memory.options
+echo "-Xms1g" | sudo tee /etc/elasticsearch/jvm.options.d/memory.options
 echo "-Xmx1g" | sudo tee -a /etc/elasticsearch/jvm.options.d/memory.options
 
 # 2. Permanent OS limit fix for Elasticsearch 8.x
