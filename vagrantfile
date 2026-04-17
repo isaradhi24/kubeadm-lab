@@ -10,34 +10,22 @@
 # Vagrantfile: Production-Grade Kubernetes Lab (STABLE)
 #==========================================================
 
-
 Vagrant.configure("2") do |config|
 
   config.vm.box = "bento/ubuntu-22.04"
   ENV["VAGRANT_NO_PARALLEL"] = "yes"
 
-  # --- GLOBAL SSH CONFIGURATION (FIXED) ---
+  # --- GLOBAL SSH CONFIGURATION ---
   config.ssh.username = "vagrant"
   config.ssh.password = "vagrant"
   config.ssh.insert_key = false
-  
-  # This tells Vagrant to allow password auth if keys fail without using the 'auth_methods' key
   config.ssh.keys_only = false 
-  
   config.vm.boot_timeout = 900
 
   NODES = {
-    # Kubernetes Control Plane (Master)
-  "k8s-master"  => { ip: "192.168.56.10", ram: 4096, cpus: 2, role: "master" },
-  
-  # Kubernetes Worker (Where your Java app lives)
-  "k8s-worker1" => { ip: "192.168.56.11", ram: 2048, cpus: 2, role: "worker" },
-  
-  # Jenkins for CI/CD
-  # "jenkins-ci"  => { ip: "192.168.56.20", ram: 2048, cpus: 2, role: "manual" },
-  
-  # THE NEW ELK SERVER (Replacing Sonarqube)
-  "elk-server"  => { ip: "192.168.56.30", ram: 6144, cpus: 2, role: "manual" }
+    "k8s-master"  => { ip: "192.168.56.10", ram: 4096, cpus: 2, role: "master" },
+    "k8s-worker1" => { ip: "192.168.56.11", ram: 2048, cpus: 2, role: "worker" },
+    "elk-server"  => { ip: "192.168.56.30", ram: 6144, cpus: 2, role: "manual" }
   }
 
   NODES.each do |name, opts|
@@ -61,13 +49,22 @@ Vagrant.configure("2") do |config|
         end
       end
 
+      # --- SYNCED FOLDERS LOGIC (UPDATED) ---
+      # --- Master Block ---
       if opts[:role] == "master"
         node.vm.synced_folder "./infra/manifests", "/home/vagrant/manifests"
+        # Sync the whole folder - this is much more stable on Windows
+        node.vm.synced_folder "./scripts/startup-scripts", "/home/vagrant/scripts"
       end
 
+      # --- Worker Block ---
+      if opts[:role] == "worker"
+        node.vm.synced_folder "./scripts/startup-scripts", "/home/vagrant/scripts"
+      end
+
+      # --- SHELL PROVISIONING ---
       node.vm.provision "shell", privileged: true, inline: <<-SHELL
         set -e
-        # Fix SSH for Ubuntu 22.04 keys
         if ! grep -q "PubkeyAcceptedKeyTypes +ssh-rsa" /etc/ssh/sshd_config; then
           echo "PubkeyAcceptedKeyTypes +ssh-rsa" >> /etc/ssh/sshd_config
           systemctl restart ssh
@@ -90,7 +87,6 @@ Vagrant.configure("2") do |config|
           sudo systemctl restart containerd
 
           sudo mkdir -p /etc/apt/keyrings
-          # curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
           curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
           echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
           sudo apt-get update -y
@@ -109,27 +105,13 @@ Vagrant.configure("2") do |config|
           sudo chown -R vagrant:vagrant /home/vagrant/.kube
           su - vagrant -c "kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml"
           
-          echo "Waiting for Kubernetes API to be ready..."
           until kubectl get nodes --kubeconfig=/home/vagrant/.kube/config >/dev/null 2>&1; do
-            echo "Still waiting..."
             sleep 2
           done
-          echo "API is up! Installing ArgoCD..."
 
-          # Auto-install ArgoCD from the local files mapped in to the Vagrant box (instead of fetching from GitHub)
           kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -n argocd -f /vagrant/manifests/argocd-install.yaml --server-side
-          # kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml 
           sudo kubeadm token create --print-join-command > /vagrant/kube_join.sh
-        fi
-
-        if kubectl get svc argocd-server -n argocd > /dev/null 2>&1; then
-          echo "Configuring ArgoCD NodePort on 30008..."
-          # Change service type to NodePort
-          kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
-          # Set the static port to 30008
-          kubectl patch svc argocd-server -n argocd --type='json' -p='[{"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30008}]'
-          echo "ArgoCD is now accessible at https://#{opts[:ip]}:30008"
         fi
 
         if [ "#{opts[:role]}" = "worker" ]; then
@@ -138,71 +120,25 @@ Vagrant.configure("2") do |config|
         fi
       SHELL
 
-      # # (Jenkins-ci block)
-      # if name == "jenkins-ci"
-      #   node.vm.synced_folder "./jenkins_home", "/var/lib/jenkins_home"
-      #   node.vm.synced_folder "./infra/pipelines", "/var/lib/jenkins_home/pipelines"
-      #   node.vm.synced_folder "./docker_home", "/var/docker_home"
-      #   node.vm.provision "shell", path: "scripts/install_docker.sh"
-      #   node.vm.provision "shell", path: "scripts/config_docker.sh"
-      #   node.vm.provision "shell", path: "scripts/install_jenkins.sh"
-      #   node.vm.provision "shell", path: "scripts/plugins_jenkins.sh"
-      #   node.vm.provision "shell", path: "scripts/config_jenkins.sh"
-        
-      #   # Add the PAT reading logic here
-      #   pat_file = "./secrets/git-persona-access-token"
-      #   github_token = File.exist?(pat_file) ? File.read(pat_file).strip : "TOKEN_NOT_FOUND"
-
-      #   node.vm.provision "shell", inline: <<-SHELL
-      #     # 1. Set the JCasC Path (Your existing logic)
-      #     sudo sed -i '/jenkins.casc.configuration/d' /etc/environment
-      #     echo "jenkins.casc.configuration='/var/jenkins_home/casc_configs/jenkins.yaml'" | sudo tee -a /etc/environment
-          
-      #     # 2. Set the GitHub PAT (New logic)
-      #     sudo sed -i '/GITHUB_PAT/d' /etc/environment
-      #     echo "GITHUB_PAT=#{github_token}" | sudo tee -a /etc/environment
-          
-      #     # 3. Restart Jenkins once to pick up BOTH variables
-      #     sudo systemctl restart jenkins
-      #   SHELL
-      # end
-      
-     
-      # Put this inside the NODES.each loop, right after the Jenkins/Sonar blocks
+      # --- POST-SETUP (MASTER) ---
       node.vm.provision "Post-Setup", type: "shell", privileged: true, inline: <<-SHELL
         if [ "#{opts[:role]}" = "master" ]; then
-          echo "Waiting for K8s API..."
           if ! grep -q "KUBECONFIG" /home/vagrant/.bashrc; then
             echo "export KUBECONFIG=/home/vagrant/.kube/config" >> /home/vagrant/.bashrc
           fi
-          # export KUBECONFIG=/home/vagrant/.kube/config
           until kubectl get nodes; do sleep 5; done
-          
-          echo "Ensuring Namespaces..."
           kubectl create namespace nginx-ns --dry-run=client -o yaml | kubectl apply -f -
-          
-          echo "Cleaning up old port-forwards..."
-          pkill -f "port-forward" || true
-          
-          # Only run port-forward if ArgoCD is actually installed
-          if kubectl get svc argocd-server -n argocd > /dev/null 2>&1; then
-             nohup kubectl port-forward --address 0.0.0.0 svc/argocd-server -n argocd 8443:443 > /home/vagrant/argocd-tunnel.log 2>&1 &
-             echo "ArgoCD Tunnel Started on Port 8443"
-          fi
         fi
       SHELL
-    
-      # (ELK block)
-      if name == "elk-server"
-        
-        node.vm.synced_folder "./elk_home", "/var/elk_home"
 
-       # Executing scripts from the synced folder to  install and configure ELK stack
+      # --- ELK SERVER PROVISIONING ---
+      if name == "elk-server"
+        node.vm.synced_folder "./elk_home", "/var/elk_home"
         node.vm.provision "shell", path: "scripts/elk/install_elk.sh"
         node.vm.provision "shell", path: "scripts/elk/config_elk.sh"
         node.vm.provision "shell", path: "scripts/elk/config_logstash.sh"
       end
       
-    end # This closes 'config.vm.define'
-  end # This closes 'NODES.each'
-end # This closes 'Vagrant.configure'
+    end
+  end
+end
