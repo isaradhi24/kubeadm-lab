@@ -100,8 +100,48 @@ Step 4: Connection
     # Ensure the service is restarted to pick up the new pipeline
     sudo systemctl restart logstash
 
-    2. Verify Logstash is listening:
+4.2. Verify Logstash is listening:
         ss -tulpn | grep 5044
 
-    3. Now push the Filebeat-kubernetes.yaml to remote gitrepo
+4.3. Now push the Filebeat-kubernetes.yaml to remote gitrepo
 
+4.4. Verrify index on  ELK server
+    After everything is synced and running for about 2 minutes, go to your ELK Server and check for the new index.
+
+    curl http://localhost:9200/_cat/indices?v
+
+    Your Kubernetes logs (which should be named something like filebeat-* or logstash-*) are should be in this list. if not troubleshoot.
+
+4.5. Troubleshooting:
+    ~~~~~~~~~~~~~~~~
+
+    1. Check Logstash on the ELK SErver
+        ss -tulpn | grep 5044
+    
+    2. Check Filebeat on the k8s-master
+        Looks for Connection to backoff(async(tcp://192.168.56.30:5044)) established is good. Failed to connect or Connection refused means Filebeat can't see the ELK server.
+
+Step 5: Setting up the Kibana Data View
+        -------------------------------
+
+5.1. Access kibana in browser http://192.168.56.30:5601
+
+    Click Explore on my own.
+
+    Open the Hamburger Menu (≡) in the top-left corner.
+
+    Scroll down to the very bottom and select Stack Management.
+
+    In the left-hand sidebar, look under the Kibana section and click Data Views.
+
+    Click the blue Create data view button.
+
+    Configure it exactly like this:
+
+    Name: K8s-Logs
+
+    Index pattern: k8s-logs-*
+
+    Timestamp field: @timestamp (Select this from the dropdown).
+
+    Click Save data view to Kibana.
