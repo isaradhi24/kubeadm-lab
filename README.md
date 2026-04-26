@@ -20,8 +20,9 @@ kubectl get nodes -o wide
 ### Cluster info
 ```bash
 kubectl cluster-info
-```
-Component status
+
+### Component status
+```bash
 kubectl get componentstatuses
 
 📦 2. System Pods (kube-system)
