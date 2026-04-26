@@ -85,10 +85,11 @@ kubectl get events -A --sort-by=.metadata.creationTimestamp
 ```
 
 ### Problem pods
+```bash
 kubectl get pods -A | grep -E "Crash|Pending|Error"
 ```
 
-## ⚡ Quick Daily Check
+### ⚡ Quick Daily Check
 ```bash
 kubectl get nodes
 kubectl get pods -n kube-system
