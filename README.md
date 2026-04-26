@@ -20,47 +20,77 @@ kubectl get nodes -o wide
 ### Cluster info
 ```bash
 kubectl cluster-info
+```
 
 ### Component status
 ```bash
 kubectl get componentstatuses
+```
 
-📦 2. System Pods (kube-system)
+## 📦 2. System Pods (kube-system)
+```bash
 kubectl get pods -n kube-system -o wide
 kubectl get ds -n kube-system
 kubectl get deploy -n kube-system
+```
 
-🔥 3. ArgoCD Health Check
-Namespace
+## 🔥 3. ArgoCD Health Check
+
+### Namespace
+```bash
 kubectl get ns argocd
-Pods
+```
+### Pods
+```bash
 kubectl get pods -n argocd -o wide
-Services
+```
+### Services
+```bash
 kubectl get svc -n argocd
-Applications
+```
+### Applications
+```bash
 kubectl get applications -n argocd
+```
 
-⚙️ 4. Workload Overview
-All resources
+## ⚙️ 4. Workload Overview
+### All resources
+```bash
 kubectl get all -A
-Deployments
+```
+### Deployments
+```bash
 kubectl get deployments -A
-DaemonSets
+```
+### DaemonSets
+```bash
 kubectl get ds -A
-ReplicaSets
+```
+### ReplicaSets
+```bash
 kubectl get rs -A
+```
 
-📊 5. Node Deep Dive
+## 📊 5. Node Deep Dive
+```bash
 kubectl describe node k8s-master
 kubectl describe node k8s-worker1
+```
 
-🚨 6. Debugging
-Events
+## 🚨 6. Debugging
+
+### Events
+```bash
 kubectl get events -A --sort-by=.metadata.creationTimestamp
-Problem pods
-kubectl get pods -A | grep -E "Crash|Pending|Error"
+```
 
-⚡ Quick Daily Check
+### Problem pods
+kubectl get pods -A | grep -E "Crash|Pending|Error"
+```
+
+## ⚡ Quick Daily Check
+```bash
 kubectl get nodes
 kubectl get pods -n kube-system
 kubectl get pods -n argocd
+```
