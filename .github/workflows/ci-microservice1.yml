@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-push:
     runs-on: [self-hosted, linux, x64]
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout code
