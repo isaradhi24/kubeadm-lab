@@ -138,9 +138,9 @@ Vagrant.configure("2") do |config|
             --apiserver-advertise-address=#{opts[:ip]} \
             --control-plane-endpoint=#{opts[:ip]}:6443 \
             --pod-network-cidr=10.244.0.0/16 \
-            --ignore-preflight-errors=all \
-            --upload-certs
+            --upload-certs  
 
+          
           mkdir -p /home/vagrant/.kube
           sudo cp /etc/kubernetes/admin.conf /home/vagrant/.kube/config
           sudo chown -R vagrant:vagrant /home/vagrant/.kube
@@ -148,22 +148,26 @@ Vagrant.configure("2") do |config|
           export KUBECONFIG=/home/vagrant/.kube/config
 
           echo "⏳ Waiting for API server..."
-          until kubectl get nodes >/dev/null 2>&1; do
-            sleep 3
-          done
-          
-          kubectl wait --for=condition=Ready nodes --all --timeout=120s
-
+          su - vagrant -c "until kubectl get nodes >/dev/null 2>&1; do sleep 3; done"
+              
           echo "📦 Installing Calico..."
+          # su - vagrant -c "kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml"
+          # kubectl wait --for=condition=Ready nodes --all --timeout=120s
+
           su - vagrant -c "kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml"
 
           echo "⏳ Waiting for nodes to become Ready..."
-          until kubectl get nodes | grep -q Ready; do
-            sleep 5
-          done
+          su - vagrant -c "until kubectl get nodes | grep -q Ready; do sleep 5; done"
 
-          kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -n argocd -f /vagrant/manifests/argocd-install.yaml --server-side
+          echo "📦 Installing ArgoCD..."
+
+            sudo -u vagrant kubectl create namespace argocd --dry-run=client -o yaml | \
+            sudo -u vagrant kubectl apply -f -
+
+            sudo -u vagrant kubectl apply \
+              -n argocd \
+              -f /home/vagrant/manifests/argocd-install.yaml \
+              --server-side
 
           sudo kubeadm token create --print-join-command > /vagrant/kube_join.sh
         fi

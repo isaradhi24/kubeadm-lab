@@ -44,6 +44,36 @@ kubectl get ns argocd
 ```bash
 kubectl get pods -n argocd -o wide
 ```
+### if ArgoCD not installed
+```bash
+sudo -u vagrant kubectl create namespace argocd --dry-run=client -o yaml | \
+sudo -u vagrant kubectl apply -f -
+
+sudo -u vagrant kubectl apply \
+  -n argocd \
+  -f /vagrant/manifests/argocd-install.yaml \
+  --server-side
+```
+### if something looks "stuck"
+```bash
+kubectl get events -n argocd --sort-by=.metadata.creationTimestamp
+or
+kubectl describe pod -n argocd <pod>
+```
+### After ArgoCD up and verything is running
+## Portfowarding
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+## Login password
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d
+```
+
+
+
+
 ### Services
 ```bash
 kubectl get svc -n argocd
