@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: 'https://github.com/isaradhi24/kubeadm-lab.git'
     targetRevision: HEAD
-    path: apps/Microservices-app/Microservice1
+    path: apps/Microservices-app/Microservice1/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: dev-ns
