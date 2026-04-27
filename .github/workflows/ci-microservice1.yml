@@ -1,5 +1,5 @@
 name: CI - Mircroservice1 Pipeline
-on: [push]
+on: 
   push:
     branches: [ main ]
     paths: - 'apps/Microservices-app/Microservice1/src/**'

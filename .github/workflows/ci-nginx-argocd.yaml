@@ -18,11 +18,9 @@ jobs:
         run: |
           echo "${{ secrets.KUBECONFIG }}" > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
-          kubectl get nodes   # optional debug
-
+          kubectl get nodes 
       - name: Update ArgoCD Application
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-        #  kubectl apply -f argocd-nginx-app.yaml
 
           echo "ArgoCD has received the update."
