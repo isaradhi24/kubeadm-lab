@@ -3,7 +3,7 @@ on:
   push:
     branches: [ main ]
     paths: 
-      - 'apps/my-nginix-app/**' # Only trigger if the ArgoCD application manifest changes
+      - 'apps/my-nginx-app/**' # Only trigger if the ArgoCD application manifest changes
       - 'infra/manifests/nginx-app-config.yaml' # Also trigger if there is changes infra manifest changes
 
 jobs:
