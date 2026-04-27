@@ -64,14 +64,23 @@ kubectl describe pod -n argocd <pod>
 ## Portfowarding
 ```bash
 kubectl port-forward svc/argocd-server -n argocd 8080:443
+or
+### if your on vm run below
+kubectl port-forward --address 0.0.0.0 svc/argocd-server -n argocd 8080:443  
 ```
 ## Login password
 ```bash
 kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d
 ```
+## login to ArgoCD in browser
 
+url : https://localhost:8080
+or
+url : https://120.0.0.1:8080
 
+user: admin
+passowd: from above step
 
 
 ### Services
