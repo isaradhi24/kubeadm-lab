@@ -35,12 +35,12 @@ jobs:
         run: |
           IMAGE_TAG=${{ github.sha }}
 
-          docker build -t your-docker-user/ms1:$IMAGE_TAG apps/Microservices-app/Microservice1/
-          docker push your-docker-user/ms1:$IMAGE_TAG
+          docker build -t isaradhi24/ms1:$IMAGE_TAG apps/Microservices-app/Microservice1/
+          docker push isaradhi24/ms1:$IMAGE_TAG
 
       - name: Update Kubernetes Manifest
         run: |
-          sed -i "s|image: .*|image: your-docker-user/ms1:${{ github.sha }}|g" apps/Microservices-app/Microservice1/manifests/deployments.yaml
+          sed -i "s|image: .*|image: isaradhi24/ms1:${{ github.sha }}|g" apps/Microservices-app/Microservice1/manifests/deployments.yaml
 
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
