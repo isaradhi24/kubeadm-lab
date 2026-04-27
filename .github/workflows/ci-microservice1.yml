@@ -1,10 +1,11 @@
-name: CI - Mircroservice1 Pipeline
-on: 
+name: CI-Microservice1 Pipeline
+
+on:
   push:
     branches: [ main ]
-    paths: - 'apps/Microservices-app/Microservice1/src/**'
-    
-# Only trigger if code changes
+    paths:
+      - 'apps/Microservices-app/Microservice1/**'
+
 jobs:
   build-and-push:
     runs-on: [self-hosted, linux, x64]
@@ -31,17 +32,18 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          IMAGE_NAME={{ github.sha }} # Use commit SHA for unique image tags 
-          IMAGE_TAG=latest
+          IMAGE_TAG=${{ github.sha }}
+
           docker build -t your-docker-user/ms1:$IMAGE_TAG apps/Microservices-app/Microservice1/
           docker push your-docker-user/ms1:$IMAGE_TAG
-        - name: Updtae Kubernetees Manifest
-          run: |
-            # Use sed to replace the image tag in the Kubernetes deployment manifest with the new image tag
-            sed -i "s|image: .*|image: your-docker-user/ms1:${{ github.sha }}|g" apps/Microservices-app/Microservice1/manifests/deployments.yaml
-          
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
+
+      - name: Update Kubernetes Manifest
+        run: |
+          sed -i "s|image: .*|image: your-docker-user/ms1:${{ github.sha }}|g" apps/Microservices-app/Microservice1/manifests/deployments.yaml
+
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
           git add apps/Microservices-app/Microservice1/manifests/deployments.yaml
-          git commit -m "chore: update image tag to ${{ github.sha }}"
-          git push 
+          git commit -m "chore: update image tag ${{ github.sha }}" || echo "no changes"
+          git push
