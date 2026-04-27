@@ -1,13 +1,13 @@
-name: microservice1-ci
-
-on:
+name: CI - Mircroservice1 Pipeline
+on: [push]
   push:
     branches: [ main ]
-    paths: - 'apps/Microservices-app/Microservice1/src/**' # Only trigger if code changes
-
+    paths: - 'apps/Microservices-app/Microservice1/src/**'
+    
+# Only trigger if code changes
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
 
     steps:
       - name: Checkout code

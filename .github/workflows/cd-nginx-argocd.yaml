@@ -1,5 +1,10 @@
 name: CI Pipeline
-on: [push]
+on: 
+  push:
+    branches: [ main ]
+    paths: 
+      - 'apps/my-nginix-app/**' # Only trigger if the ArgoCD application manifest changes
+      - 'infra/manifests/nginx-app-config.yaml' # Also trigger if there is changes infra manifest changes
 
 jobs:
   build:
@@ -9,7 +14,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 👇 ADD THIS STEP
       - name: Setup kubeconfig
         run: |
           echo "${{ secrets.KUBECONFIG }}" > kubeconfig
@@ -19,6 +23,6 @@ jobs:
       - name: Update ArgoCD Application
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          kubectl apply -f argocd-nginx-app.yaml
+        #  kubectl apply -f argocd-nginx-app.yaml
 
           echo "ArgoCD has received the update."
