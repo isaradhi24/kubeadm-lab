@@ -4,14 +4,21 @@ on: [push]
 jobs:
   build:
     runs-on: [self-hosted, linux, x64]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
+      # 👇 ADD THIS STEP
+      - name: Setup kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl get nodes   # optional debug
+
       - name: Update ArgoCD Application
-        run: | 
-           # We ONLY apply the 'manager' file. 
-           # We do NOT apply the apps/my-nginx-app/manifests/ folder here!
-           kubectl apply -f argocd-nginx-app.yaml
-           
-           echo "ArgoCD has received the update. Check the UI for namespace creation and deployment."
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl apply -f argocd-nginx-app.yaml
+
+          echo "ArgoCD has received the update."
